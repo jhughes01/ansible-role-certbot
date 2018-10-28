@@ -13,7 +13,7 @@ platforms:
 provisioner:
   name: ansible
   options:
-    'vault-id': '../../ANSIBLE_VAULT_PASSWORD'
+    'vault-id': '../../ANSIBLE_VAULT_PASSWORD.txt'
     'extra-vars': 'CI=true'
   lint:
     name: ansible-lint

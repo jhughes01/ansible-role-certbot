@@ -1,2 +1,4 @@
 ---
-# defaults file for ansible-role-certbot
+certbot_packages:
+  - certbot
+  - python2-certbot-dns-route53

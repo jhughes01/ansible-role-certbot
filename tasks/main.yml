@@ -1,19 +1,22 @@
 ---
-- name: Install certbot's required packages
-  import_tasks: packages.yml
+- name: Install EPEL (Extra Packages for Enterprise Linux) repository.
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    gpgcheck: yes
+    gpgkey: https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+  when: install_epel
 
-- name: Get certificate expiration date
-  command: >
-    openssl x509 -checkend 172800 -noout
-    -in /etc/letsencrypt/live/jhcloud.io/fullchain.pem
-  register: cert_check
-  changed_when: cert_check.rc != 0
-  failed_when: cert_check.stdout_lines|length > 0
+- name: Install certbot packages
+  yum:
+    name: "{{ certbot_packages }}"
 
-- name: Create / renew test letsencrypt certificate
-  import_tasks: create-certificate-test.yml
-  when: cert_check.rc != 0 and CI
-
-- name: Create / renew letsencrypt certificate
-  import_tasks: create-certificate.yml
-  when: cert_check.rc != 0 and not CI
+- name: Create letsencrypt certificate
+  shell: >
+    certbot certonly --non-interactive --agree-tos --email "{{certbot_email}}"
+    --domains "{{ certbot_certs | join ',' }}"
+    --dns-route53 --server https://acme-v02.api.letsencrypt.org/directory
+  environment:
+    AWS_ACCESS_KEY_ID: "{{certbot_aws_access_key}}"
+    AWS_SECRET_ACCESS_KEY: "{{certbot_aws_secret_key}}"
